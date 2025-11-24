@@ -5,5 +5,4 @@
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/install.sh)
 
-```bach
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
