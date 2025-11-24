@@ -1,80 +1,141 @@
 
+کامل کپی کن بذار تو README.md گیت‌هاب 👇
 
-# 🚀 Marz Node UI
-برای اپدیت cd /root/marznode
-git pull
-پنل سبک و سریع برای مدیریت **Node** و **Host** های مرزنشین، با قابلیت  
-**Soft Delete واقعی بدون حذف Hosts** + مدیریت Xray از طریق SSH ✅
+
+---
+
+# 🚀 Marz Node UI  
+🛡️ Soft Delete Nodes + Hosts Safe + Xray SSH Manager
+
+یک UI سبک و کاربردی برای مدیریت Nodeهای مرزنشین/مرزنود بدون اینکه با حذف Node، هاست‌ها پاک بشن.  
+همچنین امکان مدیریت Xray از طریق SSH و دکمه ON/OFF برای docker compose.
 
 ---
 
 ## ✨ Features
+✅ **Soft Delete واقعی برای Node‌ها**  
+- وقتی Node رو حذف می‌کنی، حذف نمی‌شه  
+- فقط **Disable** می‌شه  
+- Hostها دست‌نخورده باقی می‌مونن ✅
 
-✅ **Soft Delete Safe**
-- نود حذف واقعی نمی‌شود  
-- فقط اسمش `[DISABLED]` می‌خورد و IP/Port عوض می‌شود  
-- هیچ Host یا Inbound پاک نمی‌شود 💙
+✅ **تغییر IP / جابجایی Node بدون خراب شدن سرویس‌ها**  
+فقط Node رو Edit کن، همه Hosts سالم می‌مونن 💙
 
-✅ **Node Edit بدون خراب شدن Hosts**
-- IP عوض شد؟ سرور جدید گرفتی؟  
-- فقط Edit کن و همه چیز سالم می‌ماند
+✅ **Xray SSH Manager**
+- اتصال SSH
+- خواندن/ویرایش `xray/config.json`
+- ذخیره داخل UI
+- اجرای خودکار docker compose ✅
 
-✅ **SSH Xray Manager**
-- ادیت مستقیم `config.json` داخل UI  
-- اجرای خودکار `docker compose down/up`  
-- دکمه‌های ON / OFF برای خاموش/روشن کردن نود
+✅ **Docker ON/OFF**
+- ON = `docker compose up -d`
+- OFF = `docker compose down`
+دیگه لازم نیست بری داخل سرور، nano بزنی و دستی Up/Down کنی 😄
 
 ✅ **Setup Wizard**
-- بار اول UI یک صفحه نصب می‌آورد  
-- اطلاعات پنل مرزنشین و ورود UI را می‌گیریم  
-- در فایل `data/config.json` ذخیره می‌شود
+اولین بار UI رو باز کنی، یه صفحه نصب میاد و اطلاعات زیر رو می‌گیره:
+- یوزرنیم/پسورد UI
+- آدرس پنل مرزنشین
+- یوزرنیم/پسورد ادمین پنل  
+اطلاعات توی همین سرور داخل فایل ذخیره می‌شن:
+`data/config.json`
 
 ---
 
- 📥 نصب Marz Node UI
+## 📌 پیش‌نیازها
+روی Ubuntu/Debian:
 
-### 1) دانلود پروژه
 ```bash
-git clone https://github.com/lornaNET/marznode.git
-cd marznode
-
-2) نصب پیش‌نیازها
-
 apt update
 apt install -y python3 python3-venv python3-pip sshpass git
 
-3) ساخت محیط و نصب پکیج‌ها
+
+---
+
+🔥 نصب و اجرا (بدون systemd)
+
+1) دانلود پروژه
+
+git clone https://github.com/lornaNET/marznode.git
+cd marznode
+
+2) ساخت venv و نصب پکیج‌ها
 
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+3) اجرای UI
+
 source venv/bin/activate
-pip install fastapi uvicorn jinja2 python-dotenv requests pydantic python-multipart
-python3 app.py
-4) اجرای UI
-
 python3 app.py
 
-5) باز کردن در مرورگر
+4) باز کردن در مرورگر
 
 http://YOUR-SERVER-IP:9000
+
+بعد از باز شدن، Setup Wizard میاد و اطلاعات پنل رو می‌گیری ✅
 
 
 ---
 
-🧩 نصب پنل مرزنشین (Marzneshin)
+⚙️ نصب به صورت سرویس systemd (پیشنهادی)
 
-بعد از نصب، اطلاعات پنل رو داخل Setup Wizard همین UI وارد کن ✅
+1) فایل سرویس بساز
+
+sudo nano /etc/systemd/system/marz-node-ui.service
+
+2) اینو کامل داخلش کپی کن
+
+[Unit]
+Description=Marz Node UI (FastAPI + Uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/marznode
+Environment="PYTHONUNBUFFERED=1"
+
+ExecStart=/root/marznode/venv/bin/uvicorn app:app --host 0.0.0.0 --port 9000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+3) فعال و اجرا کن
+
+sudo systemctl daemon-reload
+sudo systemctl enable marz-node-ui.service
+sudo systemctl restart marz-node-ui.service
+
+✅ حالا UI همیشه روی سرور روشن می‌مونه.
+
+
+---
+
+🔄 آپدیت گرفتن از گیت‌هاب
+
+cd /root/marznode
+git pull
+sudo systemctl restart marz-node-ui.service
+
+اگر خطای overwrite فایل دادی، اینو بزن:
+
+cd /root/marznode
+git reset --hard origin/main
+git pull
+sudo systemctl restart marz-node-ui.service
 
 
 ---
 
 🗂️ محل ذخیره تنظیمات
 
-اطلاعات نصب و لاگین داخل این فایل ذخیره می‌شود:
+کل اطلاعات نصب داخل این فایل ذخیره می‌شه:
 
-marz-node-ui/data/config.json
+data/config.json
 
 نمونه:
 
@@ -89,7 +150,15 @@ marz-node-ui/data/config.json
 
 ---
 
-🔄 بکاپ گرفتن از سورس
+🧩 نصب پنل مرزنشین (Marzneshin)
+
+📌 اول مرزنشین رو نصب کنید، بعد وارد UI بشید و اطلاعاتش رو داخل Setup Wizard وارد کنید ✅
+(این UI خودش توکن ادمین رو از پنل می‌گیره و Node/Host ها رو می‌خونه.)
+
+
+---
+
+🧰 بکاپ گرفتن از سورس
 
 برای بکاپ فولدر پروژه:
 
@@ -99,13 +168,40 @@ tar -czvf marz-node-ui-backup.tar.gz marznode
 
 ---
 
-❤️ Donate / Support
+🆘 رفع ارورهای رایج
 
-اگر این ابزار بهت کمک کرد خوشحال میشم ستاره بدی ⭐
-و اگه خواستی توسعه‌ش بدیم، Issue بزار یا PR بده 😄
+❌ TemplateNotFound: setup.html / login.html
+
+یعنی سرویس از مسیر اشتباه اجرا شده.
+systemd رو دقیقاً طبق README بالا بسازید (WorkingDirectory مهمه ✅)
+
+❌ ModuleNotFoundError مثل requests یا itsdangerous
+
+یعنی requirements نصب نشده:
+
+cd marznode
+source venv/bin/activate
+pip install -r requirements.txt
+sudo systemctl restart marz-node-ui.service
+
+❌ صفحه سفید / ERR_EMPTY_RESPONSE
+
+سرویس بالا نیست. وضعیت رو چک کن:
+
+sudo systemctl status marz-node-ui.service --no-pager
+journalctl -u marz-node-ui.service -n 100 --no-pager
 
 
 ---
 
+❤️ Support
+
+اگر این ابزار بهت کمک کرد یه ⭐ به ریپو بده
+برای توسعه هم Issue یا PR بذار 😄
+
+
 ---
 
+Marz Node UI — Soft Delete Nodes, Keep Hosts Alive 💙
+
+-
