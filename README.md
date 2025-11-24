@@ -28,7 +28,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/insta
 
 > این دستور سرویس، سورس و تنظیمات را کامل پاک می‌کند.
 
----
+
 ```
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
 ---
