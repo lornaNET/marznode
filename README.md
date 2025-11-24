@@ -1,94 +1,42 @@
-
-🚀 Marz Node UI
-
-پنل سبک و سریع برای مدیریت نودهای Marzneshin با Soft Delete واقعی
-بدون اینکه Hosts یا Inbounds حذف بشن 💙
+حتماً. این پایین یه README کامل و مرتبِ گیتهاب برات نوشتم که همه دستورها داخل code block هستن و اتوماتیک دکمه Copy میارن. همونو کامل کپی کن بذار تو README.md گیت‌هابت:
 
 
 ---
 
-✨ چی کار می‌کنه؟
+# 🚀 Marz Node UI
 
-✅ Soft Delete Safe
-
-وقتی توی مرزنشین نود رو Delete می‌کنی، هاست‌ها هم پاک می‌شن و همه‌چی می‌ریزه بهم 😑
-اینجا فقط نود غیرفعال (Disable) می‌شه:
-
-نود حذف واقعی نمی‌شه
-
-اسم نود [DISABLED] می‌گیره
-
-IP رندوم از رنج 127.0.0.X می‌خوره
-
-port = 0
-
-usage_coefficient = 0
-
-هیچ Host/Inbound ای حذف یا خراب نمی‌شه
-
-
+پنل سبک و سریع برای مدیریت **Node** و **Host** های مرزنشین، با قابلیت  
+**Soft Delete واقعی بدون حذف Hosts** + مدیریت Xray از طریق SSH ✅
 
 ---
 
-✅ Node Edit بدون دردسر
+## ✨ Features
 
-IP عوض شد یا سرور جدید گرفتی؟
-فقط نودو Edit کن، سرویس‌ها سالم می‌مونن ✅
+✅ **Soft Delete Safe**
+- نود حذف واقعی نمی‌شود  
+- فقط اسمش `[DISABLED]` می‌خورد و IP/Port عوض می‌شود  
+- هیچ Host یا Inbound پاک نمی‌شود 💙
 
+✅ **Node Edit بدون خراب شدن Hosts**
+- IP عوض شد؟ سرور جدید گرفتی؟  
+- فقط Edit کن و همه چیز سالم می‌ماند
 
----
+✅ **SSH Xray Manager**
+- ادیت مستقیم `config.json` داخل UI  
+- اجرای خودکار `docker compose down/up`  
+- دکمه‌های ON / OFF برای خاموش/روشن کردن نود
 
-✅ SSH Xray Manager
-
-داخل خود UI می‌تونی:
-
-config.json رو از نود بخونی
-
-همونجا ادیتش کنی
-
-Save بزنی تا خودش اتومات:
-
-فایل رو بفرسته روی سرور
-
-docker compose down/up بزنه
-
-
-
-👑 یعنی دیگه لازم نیست:
-
-بری سرور
-
-nano بزنی
-
-docker دستی بالا پایین کنی
-
-
+✅ **Setup Wizard**
+- بار اول UI یک صفحه نصب می‌آورد  
+- اطلاعات پنل مرزنشین و ورود UI را می‌گیریم  
+- در فایل `data/config.json` ذخیره می‌شود
 
 ---
 
-✅ Setup Wizard (اولین اجرا)
+## 📥 نصب Marz Node UI
 
-وقتی اولین بار UI رو باز می‌کنی، یه صفحه نصب میاد و اطلاعات رو می‌گیره:
-
-یوزر/پس ورود به UI
-
-آدرس پنل مرزنشین
-
-یوزر/پس ادمین پنل مرزنشین
-
-
-همه چی توی این فایل ذخیره می‌شه:
-
-data/config.json
-
-
----
-
-📦 نصب (بدون Docker)
-
-1) کلون پروژه
-
-cd /opt
+### 1) دانلود پروژه
+```bash
 git clone https://github.com/lornaNET/marznode.git
 cd marznode
 
@@ -97,7 +45,7 @@ cd marznode
 apt update
 apt install -y python3 python3-venv python3-pip sshpass git
 
-3) ساخت venv و نصب پکیج‌ها
+3) ساخت محیط و نصب پکیج‌ها
 
 python3 -m venv venv
 source venv/bin/activate
@@ -107,97 +55,64 @@ pip install -r requirements.txt
 
 python3 app.py
 
-حالا برو تو مرورگر:
+5) باز کردن در مرورگر
 
 http://YOUR-SERVER-IP:9000
 
 
 ---
 
-⚙️ اجرا به صورت سرویس (Systemd)
+🧩 نصب پنل مرزنشین (Marzneshin)
 
-فایل سرویس بساز:
+> اگر پنل مرزنشین رو از قبل نصب نکردی، اول اینو نصب کن:
 
-nano /etc/systemd/system/marz-node-ui.service
 
-محتوا:
 
-[Unit]
-Description=Marz Node UI
-After=network.target
+bash <(curl -Ls https://raw.githubusercontent.com/Gozargah/Marzban-scripts/master/marzban.sh)
 
-[Service]
-WorkingDirectory=/opt/marznode
-ExecStart=/opt/marznode/venv/bin/python app.py
-Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
-
-فعال‌سازی:
-
-systemctl daemon-reload
-systemctl enable marz-node-ui
-systemctl start marz-node-ui
-systemctl status marz-node-ui
+بعد از نصب، اطلاعات پنل رو داخل Setup Wizard همین UI وارد کن ✅
 
 
 ---
 
-🧪 بکاپ گرفتن از سورس
+🗂️ محل ذخیره تنظیمات
 
-برای بکاپ کامل پوشه پروژه:
+اطلاعات نصب و لاگین داخل این فایل ذخیره می‌شود:
+
+marz-node-ui/data/config.json
+
+نمونه:
+
+{
+  "ui_username": "admin",
+  "ui_password": "admin",
+  "panel_url": "https://YOUR-PANEL-DOMAIN",
+  "panel_admin_user": "PANEL-ADMIN-USER",
+  "panel_admin_pass": "PANEL-ADMIN-PASS"
+}
+
+
+---
+
+🔄 بکاپ گرفتن از سورس
+
+برای بکاپ فولدر پروژه:
 
 cd /opt
-tar -czvf marznode-backup.tar.gz marznode
-
-برای ریستور:
-
-cd /opt
-tar -xzvf marznode-backup.tar.gz
+tar -czvf marz-node-ui-backup.tar.gz marznode
 
 
 ---
 
-🛡️ امنیت
+❤️ Donate / Support
 
-اطلاعات ورود فقط داخل data/config.json ذخیره می‌شن
-
-هیچ چیزی داخل سورس هاردکد نیست
-
-مناسب برای انتشار عمومی ✅
-
+اگر این ابزار بهت کمک کرد خوشحال میشم ستاره بدی ⭐
+و اگه خواستی توسعه‌ش بدیم، Issue بزار یا PR بده 😄
 
 
 ---
 
-🇬🇧 English (Short)
+---
 
-Marz Node UI
-
-A lightweight web UI for Marzneshin nodes with real Soft Delete.
-
-Soft Delete:
-
-Node is not removed
-
-Renamed to [DISABLED]
-
-IP randomizes to 127.0.0.X
-
-port=0, usage_coefficient=0
-
-Hosts/Inbounds stay safe
-
-
-SSH Xray Manager: Edit xray/config.json directly in UI and auto restart docker compose.
-
-Setup Wizard: On first run, asks for:
-
-UI login
-
-panel URL
-
-panel admin credentials
-Saved in data/config.json.
+این README همینطوری که هست **دکمه Copy** میاره چون همه دستورها داخل ```bash هستند.  
+اگه دوست داری عکس UI و GIF هم بذاریم تو ریدمی، بگو تا بخشش رو هم اضافه کنم.
