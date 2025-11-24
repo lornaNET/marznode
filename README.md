@@ -29,7 +29,7 @@
 - در فایل `data/config.json` ذخیره می‌شود
 
 ---
-### 1) دانلود پروژه
+ 1) دانلود پروژه
 ```bash
 git clone https://github.com/lornaNET/marznode.git
 cd marznode
