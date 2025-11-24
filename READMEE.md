@@ -44,6 +44,7 @@ sshpass
 1️⃣ دانلود پروژه
 
 git clone https://github.com/lornaNET/marznode.git
+
 cd marznode
 
 
