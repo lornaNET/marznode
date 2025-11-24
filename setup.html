@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup - Marz Node UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { background:#05070b; }
+    .setup-wrap{max-width:520px;margin:40px auto;padding:20px}
+    .setup-card{background:#0c111b;border:1px solid #1b2333;border-radius:16px;padding:20px}
+    .setup-title{font-size:22px;font-weight:700;margin-bottom:8px}
+    .setup-sub{opacity:.8;margin-bottom:16px}
+    .setup-form{display:grid;gap:10px}
+    .setup-form .input{width:100%}
+    .setup-btn{width:100%;padding:12px;border-radius:10px}
+  </style>
+</head>
+<body>
+  <div class="setup-wrap">
+    <div class="setup-card">
+      <div class="setup-title">🛠️ نصب Marz Node UI</div>
+      <div class="setup-sub">یکبار پر کن؛ بعدش مستقیم می‌ری UI</div>
+
+      <form class="setup-form" method="post" action="/setup">
+        <label>👤 یوزرنیم ورود به UI</label>
+        <input class="input" name="ui_username" required placeholder="مثلاً admin">
+
+        <label>🔑 پسورد ورود به UI</label>
+        <input class="input" type="password" name="ui_password" required placeholder="******">
+
+        <hr style="opacity:.2">
+
+        <label>🌐 آدرس پنل مرزنشین</label>
+        <input class="input" name="panel_url_in" required
+               placeholder="https://mypanel.example.com"
+               value="{{ default_panel_url }}">
+
+        <label>🧑‍💻 یوزرنیم ادمین مرزنشین</label>
+        <input class="input" name="panel_admin_user_in" required placeholder="admin">
+
+        <label>🔐 پسورد ادمین مرزنشین</label>
+        <input class="input" type="password" name="panel_admin_pass_in" required placeholder="******">
+
+        <button class="btn btn-primary setup-btn" type="submit">✅ ذخیره و ادامه</button>
+      </form>
+
+      <div style="margin-top:12px;opacity:.7;font-size:13px">
+        اطلاعات فقط روی همین سرور داخل <code>data/config.json</code> ذخیره می‌شود.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

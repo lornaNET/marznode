@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Marz Node UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { background:#05070b; }
+    .login-wrap{max-width:420px;margin:60px auto;padding:20px}
+    .login-card{background:#0c111b;border:1px solid #1b2333;border-radius:16px;padding:20px}
+    .login-title{font-size:22px;font-weight:700;margin-bottom:8px}
+    .login-form{display:grid;gap:10px;margin-top:10px}
+    .login-btn{width:100%;padding:12px;border-radius:10px}
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">🔐 ورود به Marz Node UI</div>
+
+      {% if error %}
+        <div class="error-box">{{ error }}</div>
+      {% endif %}
+
+      <form class="login-form" method="post" action="/login">
+        <label>یوزرنیم</label>
+        <input class="input" name="username" required>
+
+        <label>پسورد</label>
+        <input class="input" type="password" name="password" required>
+
+        <button class="btn btn-primary login-btn" type="submit">ورود</button>
+      </form>
+
+      <form method="get" action="/setup" style="margin-top:8px">
+        <button class="btn btn-secondary login-btn" type="submit">🛠️ تغییر تنظیمات نصب</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
