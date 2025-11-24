@@ -32,4 +32,4 @@ bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/insta
 
 ```
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
----
+
