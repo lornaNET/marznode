@@ -23,3 +23,11 @@
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/install.sh)
+
+## 🗑️ حذف کامل (تک‌دستوری)
+
+> این دستور سرویس، سورس و تنظیمات را کامل پاک می‌کند.
+
+
+```bach
+bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
