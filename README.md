@@ -4,8 +4,3 @@
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/install.sh)
-
-
-
-🧨 حذف کامل Marz Node UI
-bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
