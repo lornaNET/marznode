@@ -48,6 +48,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+source venv/bin/activate
+pip install fastapi uvicorn jinja2 python-dotenv requests pydantic python-multipart
+python3 app.py
 4) اجرای UI
 
 python3 app.py
