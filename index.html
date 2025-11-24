@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Marz Node UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="neon">
+<div class="page-root">
+
+    <!-- نوار بالای صفحه -->
+    <header class="top-bar">
+        <div class="top-left">
+            <div class="logo-title">Marz Node UI</div>
+            <div class="subtitle">
+                مدیریت نودها و هاست‌های مرزنشین با قابلیت Soft Delete نودها
+            </div>
+            <div class="server-url">
+                Server: <a href="{{ server_url }}" target="_blank">{{ server_url }}</a>
+            </div>
+        </div>
+
+        <div class="top-right">
+            <div class="top-notice">
+                Theme (فقط در این مرورگر ذخیره می‌شود)
+            </div>
+            <div class="theme-switcher">
+                <button class="theme-btn" data-theme="default">Default</button>
+                <button class="theme-btn" data-theme="purple">Purple</button>
+                <button class="theme-btn" data-theme="neon">Neon</button>
+                <button class="theme-btn" data-theme="glass">Glass</button>
+                <button class="theme-btn" data-theme="amoled">AMOLED</button>
+                <button class="theme-btn" data-theme="minimal">Minimal</button>
+            </div>
+            <div class="soft-delete-hint">
+                🛡️ Soft Delete نودها (هاست‌ها و اینباندها حذف نمی‌شوند)
+            </div>
+        </div>
+    </header>
+
+    <!-- ردیف اصلی: هاست‌ها + نودها -->
+    <main class="main-grid">
+
+        <!-- هاست‌ها -->
+        <section class="card hosts-card">
+            <div class="card-header">
+                <div class="card-title">هاست‌ها (Hosts)</div>
+                <div class="card-subtitle">
+                    ویرایش / حذف هاست‌ها بدون دست‌زدن به نودها و کاربران
+                </div>
+            </div>
+
+            {% if hosts_error %}
+                <div class="error-box">{{ hosts_error }}</div>
+            {% endif %}
+
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>آدرس</th>
+                        <th>پورت</th>
+                        <th>وزن</th>
+                        <th>ویرایش / حذف</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for h in hosts %}
+                        <tr>
+                            <td>{{ h.id }}</td>
+                            <td>{{ h.address }}</td>
+                            <td>{{ h.port }}</td>
+                            <td>
+                                {% if h.weight is defined %}
+                                    {{ h.weight }}
+                                {% elif h.usage_ratio is defined %}
+                                    {{ h.usage_ratio }}
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" action="/hosts/{{ h.id }}/update" class="inline-form">
+                                    <input class="input input-small" type="text" name="address" value="{{ h.address }}">
+                                    <input class="input input-small" type="number" name="port" value="{{ h.port }}">
+                                    <input class="input input-small" type="number" name="weight"
+                                           value="{% if h.weight is defined %}{{ h.weight }}{% elif h.usage_ratio is defined %}{{ h.usage_ratio }}{% else %}1{% endif %}">
+                                    <button class="btn btn-primary btn-compact" type="submit">ذخیره</button>
+                                </form>
+
+                                <form method="post" action="/hosts/{{ h.id }}/delete" class="inline-form">
+                                    <button class="btn btn-danger btn-compact" type="submit">حذف</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- نودها -->
+        <section class="card nodes-card">
+            <div class="card-header">
+                <div class="card-title">نودها (Nodes)</div>
+                <div class="card-subtitle">
+                    حالت Soft Delete نودها (هاست‌ها و اینباندها حذف نمی‌شوند)
+                </div>
+            </div>
+
+            {% if nodes_error %}
+                <div class="error-box">{{ nodes_error }}</div>
+            {% endif %}
+
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>آدرس</th>
+                        <th>پورت</th>
+                        <th>نام</th>
+                        <th>Soft Delete / ویرایش</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for n in nodes %}
+                        <tr>
+                            <td>{{ n.id }}</td>
+                            <td>{{ n.address }}</td>
+                            <td>{{ n.port }}</td>
+                            <td>{{ n.name }}</td>
+                            <td>
+                                <form method="post" action="/nodes/{{ n.id }}/soft-delete" class="inline-form">
+                                    <button class="btn btn-danger btn-compact" type="submit">Soft Delete</button>
+                                </form>
+
+                                <a class="btn btn-primary btn-compact"
+                                   href="/?node_id={{ n.id }}">ویرایش</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ایجاد نود جدید -->
+            <div class="new-node-block">
+                <div class="card-subtitle">ایجاد نود جدید</div>
+                <p class="hint-text">
+                    بعد از ساخت نود، اسکریپت مرزنشین را روی سرور مقصد نصب کن تا نود آنلاین شود.
+                </p>
+                <form method="post" action="/nodes/create" class="new-node-form">
+                    <input class="input" type="text" name="name" placeholder="نام نود">
+                    <input class="input" type="text" name="address" placeholder="آدرس (IP یا دامنه)">
+                    <input class="input" type="number" name="port" placeholder="پورت">
+                    <button class="btn btn-primary" type="submit">ایجاد نود</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ردیف دوم: جزییات نود + SSH / Xray -->
+    <section class="bottom-grid">
+        <!-- جزییات نود انتخاب‌شده -->
+        <section class="card node-details-card">
+            <div class="card-header">
+                <div class="card-title">جزییات نود انتخاب‌شده</div>
+                <div class="card-subtitle">
+                    برای مشاهده جزییات، روی «ویرایش» یکی از نودها در جدول بالا کلیک کن.
+                </div>
+            </div>
+
+            <div class="node-details-content">
+                {% if selected_node %}
+                    <pre class="node-details-pre">
+ID: {{ selected_node.id }}
+نام: {{ selected_node.name }}
+آدرس: {{ selected_node.address }}
+پورت: {{ selected_node.port }}
+
+{{ selected_node | tojson(indent=2) }}
+                    </pre>
+                {% else %}
+                    <div class="hint-text">
+                        هنوز نودی انتخاب نشده است.
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- SSH / Xray / JSON panel -->
+        <section class="card ssh-card">
+            <div class="card-header">
+                <div class="card-title">Xray روی نود (SSH)</div>
+                <div class="card-subtitle">
+                    بدون نیاز به ورود مستقیم روی سرور، فایل <code>config.json</code> را ادیت کن و بعد
+                    کانتینر Xray را با <code>docker compose</code> ری‌استارت کن.
+                    مسیرها طبق <b>نام نود (برچسب پوشه)</b> به‌صورت خودکار ساخته می‌شوند.
+                </div>
+            </div>
+
+            <form method="post" action="/ssh/save-config" class="ssh-form">
+                {% if selected_node %}
+                    <input type="hidden" name="node_id" value="{{ selected_node.id }}">
+                {% endif %}
+
+                <div class="ssh-grid">
+                    <div class="ssh-col">
+                        <label class="field-label">IP / Host</label>
+                        <input class="input" type="text" name="ssh_host"
+                               value="{{ ssh_info.ssh_host }}" placeholder="IP / Host">
+
+                        <label class="field-label">SSH Port</label>
+                        <input class="input" type="number" name="ssh_port"
+                               value="{{ ssh_info.ssh_port }}" placeholder="22">
+
+                        <label class="field-label">User</label>
+                        <input class="input" type="text" name="ssh_user"
+                               value="{{ ssh_info.ssh_user }}" placeholder="root">
+                    </div>
+
+                    <div class="ssh-col">
+                        <label class="field-label">Password</label>
+                        <input class="input" type="password" name="ssh_password"
+                               value="{{ ssh_info.ssh_password }}" placeholder="*******">
+
+                        <label class="field-label">نام نود (برچسب پوشه، مثل fr یا TR)</label>
+                        <input class="input" type="text" name="ssh_node_label"
+                               value="{{ ssh_info.ssh_node_label }}" placeholder="مثلاً TR">
+                    </div>
+                </div>
+
+                <div class="ssh-derived-info">
+                    <div>📂 مسیر نود:
+                        <code>
+                            {% if ssh_info.ssh_node_label %}
+                                /opt/marznode/{{ ssh_info.ssh_node_label }}
+                            {% else %}
+                                /opt/marznode/&lt;label&gt;
+                            {% endif %}
+                        </code>
+                    </div>
+                    <div>🧾 فایل تنظیمات: <code>xray/config.json</code></div>
+                    <div>🐳 docker compose:
+                        <code>docker compose -f docker-compose.yml down && docker compose -f docker-compose.yml up -d</code>
+                    </div>
+                </div>
+
+                <!-- JSON panel -->
+                <div class="json-panel">
+                    <div class="json-panel-header">
+                        <span>Xray config.json</span>
+                        <span class="json-panel-hint">
+                            اینجا JSON را مرتب و چند خطی می‌بینی؛ می‌توانی مستقیم ادیت کنی.
+                        </span>
+                    </div>
+                    <textarea class="json-textarea" name="ssh_config_json"
+                              spellcheck="false">{{ ssh_json|e }}</textarea>
+                </div>
+
+                {% if ssh_error %}
+                    <div class="error-box">{{ ssh_error }}</div>
+                {% endif %}
+
+                <div class="actions-row">
+                    <button class="btn btn-secondary"
+                            type="submit"
+                            formaction="/ssh/load-config">
+                        خواندن config.json از نود
+                    </button>
+
+                    <button class="btn btn-danger" type="submit">
+                        ذخیره config.json روی نود و اجرای docker compose
+                    </button>
+
+                    <button class="btn btn-warning"
+                            type="submit"
+                            formaction="/ssh/node-off">
+                        خاموش موقت نود (OFF)
+                    </button>
+
+                    <button class="btn btn-success"
+                            type="submit"
+                            formaction="/ssh/node-on">
+                        روشن کردن نود (ON)
+                    </button>
+                </div>
+
+                <div class="small-hint">
+                    خاموش/روشن کردن نود فقط روی کانتینر Xray همان VPS انجام می‌شود؛
+                    هاست‌ها و کاربران در پنل مرزنشین دست‌نخورده می‌مانند 💙
+                </div>
+            </form>
+        </section>
+    </section>
+
+    <footer class="footer">
+        💙 Marz Node UI – Soft Delete Nodes, Keep Hosts Alive – Built for personal use
+    </footer>
+</div>
+
+<script>
+    // ========== Theme handling ==========
+    (function () {
+        const saved = localStorage.getItem("marz_theme");
+        const body = document.body;
+        if (saved) {
+            body.setAttribute("data-theme", saved);
+        }
+
+        const buttons = document.querySelectorAll(".theme-btn");
+        buttons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const theme = btn.getAttribute("data-theme");
+                body.setAttribute("data-theme", theme);
+                localStorage.setItem("marz_theme", theme);
+            });
+        });
+    })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title if title else "Marz Node UI" }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Marz Node UI</h1>
+  <p class="subtitle">
+    مدیریت نودها و هاست‌های متصل به مرزنشین (بدون حذف در خود مرزنشین)<br>
+    <span>Server: {{ server_base }}</span>
+  </p>
+</header>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <small>Built for Marzneshin management · بدون هیچ عملیات حذف (DELETE)</small>
+</footer>
+</body>
+</html>
