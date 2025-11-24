@@ -29,6 +29,25 @@
 - در فایل `data/config.json` ذخیره می‌شود
 
 ---
+### 1) دانلود پروژه
+```bash
+git clone https://github.com/lornaNET/marznode.git
+cd marznode
+
+2) نصب پیش‌نیازها
+
+apt update
+apt install -y python3 python3-venv python3-pip sshpass git
+
+3) ساخت محیط و نصب پکیج‌ها
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+4) اجرای UI
+
+python3 app.py
 
 ## 📥 نصب Marz Node UI
 
