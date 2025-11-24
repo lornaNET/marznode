@@ -1,0 +1,115 @@
+آره تقریبا درسته و کاربر با همین می‌تونه بالا بیاره؛ فقط چند تا نکته ریز هست که بهتره تو README اضافه کنی تا هیچ‌کس گیر نکنه. اینا رو به شکل “توضیح + قدم نهایی” بزار:
+
+
+---
+
+✅ چیزایی که لازمه قبل نصب بگی
+
+1. پایتون 3.10 یا بالاتر
+
+
+
+python3 --version
+
+2. پکیج‌های پایه روی اوبونتو/دبیان:
+
+
+
+apt update
+apt install -y python3 python3-venv python3-pip git sshpass
+
+3. باز بودن پورت UI (9000) اگه فایروال دارن:
+
+
+
+ufw allow 9000/tcp
+
+
+---
+
+✅ نصب (همین که گذاشتی، فقط مرتب‌ترش کن)
+
+git clone https://github.com/lornaNET/marznode.git
+cd marznode
+
+python3 -m venv venv
+source venv/bin/activate
+
+pip install --upgrade pip
+pip install -r requirements.txt
+
+python3 app.py
+
+بعد تو مرورگر:
+
+http://YOUR-SERVER-IP:9000
+
+
+---
+
+✅ نکته مهم: Setup Wizard
+
+بنویس که:
+
+اولین بار که UI بالا میاد میره صفحه Setup
+
+اطلاعات رو وارد کنن
+
+توی data/config.json ذخیره میشه
+
+از این به بعد مستقیم میره UI
+
+
+
+---
+
+✅ اگر خواستن با systemd همیشه روشن باشه (آپشنال)
+
+این بخش رو هم بزار آخر ریدمی، خیلی کمک می‌کنه:
+
+ساخت سرویس
+
+sudo nano /etc/systemd/system/marz-node-ui.service
+
+داخلش:
+
+[Unit]
+Description=Marz Node UI (FastAPI + Uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/marznode
+ExecStart=/root/marznode/venv/bin/uvicorn app:app --host 0.0.0.0 --port 9000
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+
+فعال‌سازی:
+
+sudo systemctl daemon-reload
+sudo systemctl enable marz-node-ui
+sudo systemctl restart marz-node-ui
+
+لاگ:
+
+journalctl -u marz-node-ui -f
+
+
+---
+
+✅ جمع‌بندی
+
+پس بله، README الان برای نصب کافیه؛
+فقط این ۳ تا چیز رو اضافه کن:
+
+چک نسخه پایتون + نصب پیش‌نیازها
+
+باز کردن پورت 9000
+
+بخش systemd به صورت آپشنال
+
+
+اگه خواستی من خود همین متن‌ها رو خیلی تمیز و خوشگل با ایموجی و تیترهای قشنگ، دقیقاً قالب README گیتهاب برات می‌نویسم که کپی/پیست کنی.
