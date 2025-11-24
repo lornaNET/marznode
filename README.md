@@ -1,14 +1,9 @@
+## 🚀 نصب سریع Marz Node UI
 
-## 🚀 نصب سریع
+با این دستور همه‌چیز خودکار نصب و سرویس systemd ساخته میشه:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/install.sh)
-bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/install.sh)
 
-
-
-
-
-
-
+```bach
 bash <(curl -fsSL https://raw.githubusercontent.com/lornaNET/marznode/main/uninstall.sh)
