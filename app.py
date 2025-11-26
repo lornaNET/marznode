@@ -5,6 +5,7 @@ import tempfile
 import subprocess
 from pathlib import Path
 import secrets
+import datetime
 
 import requests
 from fastapi import FastAPI, Request, Form
@@ -302,6 +303,27 @@ def scp_write_file(host: str, port: int, user: str, password: str,
             "-o", "StrictHostKeyChecking=no",
             local_path,
             f"{user}@{host}:{remote_path}",
+        ]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise RuntimeError("sshpass نصب نیست:\napt install -y sshpass")
+
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr or proc.stdout or f"SCP exit code {proc.returncode}")
+
+def scp_read_file(host: str, port: int, user: str, password: str,
+                  remote_path: str, local_path: str) -> None:
+    """
+    دانلود فایل از ریموت به لوکال با sshpass + scp
+    """
+    try:
+        cmd = [
+            "sshpass", "-p", password,
+            "scp",
+            "-P", str(port),
+            "-o", "StrictHostKeyChecking=no",
+            f"{user}@{host}:{remote_path}",
+            local_path,
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True)
     except FileNotFoundError:
@@ -741,3 +763,248 @@ async def ssh_node_on(
         ssh_error = str(e)
 
     return render_index(request, node_id=node_id, ssh_info=ssh_info, ssh_json="", ssh_error=ssh_error)
+
+# =====================================================
+#  Backup / Restore / Change Core (NEW)
+# =====================================================
+
+BACKUP_DIR = DATA_DIR / "backups"
+BACKUP_DIR.mkdir(exist_ok=True)
+
+def effective_label(form_label: str, op_label: Optional[str]) -> str:
+    if op_label and op_label.strip():
+        return op_label.strip()
+    return (form_label or "").strip()
+
+@app.post("/ssh/backup-node")
+async def ssh_backup_node(
+    request: Request,
+    ssh_host: str = Form(...),
+    ssh_port: int = Form(...),
+    ssh_user: str = Form(...),
+    ssh_password: str = Form(...),
+    ssh_node_label: str = Form(...),
+    op_node_label: Optional[str] = Form(None),
+    node_id: Optional[str] = Form(None),
+):
+    redir = require_login(request)
+    if redir:
+        return redir
+
+    ssh_info = sshinfo_from_form(
+        ssh_host=ssh_host,
+        ssh_port=ssh_port,
+        ssh_user=ssh_user,
+        ssh_password=ssh_password,
+        ssh_node_label=ssh_node_label,
+    )
+
+    ssh_error: Optional[str] = None
+    ssh_json = ""
+
+    try:
+        label = effective_label(ssh_info.ssh_node_label, op_node_label)
+        node_dir, _, _ = build_paths(label)
+
+        ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        remote_tmp = f"/tmp/marznode_backup_{label}_{ts}.tar.gz"
+        local_file = str(BACKUP_DIR / f"{label}_{ts}.tar.gz")
+
+        tar_cmd = f"tar -czf '{remote_tmp}' -C '{BASE_NODE_DIR}' '{label}'"
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=tar_cmd,
+        )
+
+        scp_read_file(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            remote_path=remote_tmp,
+            local_path=local_file,
+        )
+
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=f"rm -f '{remote_tmp}'",
+        )
+
+    except Exception as e:
+        ssh_error = str(e)
+
+    return render_index(request, node_id=node_id, ssh_info=ssh_info, ssh_json=ssh_json, ssh_error=ssh_error)
+
+
+@app.post("/ssh/restore-node")
+async def ssh_restore_node(
+    request: Request,
+    ssh_host: str = Form(...),
+    ssh_port: int = Form(...),
+    ssh_user: str = Form(...),
+    ssh_password: str = Form(...),
+    ssh_node_label: str = Form(...),
+    op_node_label: Optional[str] = Form(None),
+    node_id: Optional[str] = Form(None),
+):
+    redir = require_login(request)
+    if redir:
+        return redir
+
+    ssh_info = sshinfo_from_form(
+        ssh_host=ssh_host,
+        ssh_port=ssh_port,
+        ssh_user=ssh_user,
+        ssh_password=ssh_password,
+        ssh_node_label=ssh_node_label,
+    )
+
+    ssh_error: Optional[str] = None
+    ssh_json = ""
+
+    try:
+        label = effective_label(ssh_info.ssh_node_label, op_node_label)
+
+        backups = sorted(BACKUP_DIR.glob(f"{label}_*.tar.gz"), reverse=True)
+        if not backups:
+            raise RuntimeError(f"هیچ بکاپی برای لیبل {label} پیدا نشد.")
+
+        latest_backup = backups[0]
+        local_file = str(latest_backup)
+        remote_tmp = f"/tmp/marznode_restore_{label}.tar.gz"
+
+        scp_write_file(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            local_path=local_file,
+            remote_path=remote_tmp,
+        )
+
+        backup_old_cmd = (
+    f"if [ -d '{BASE_NODE_DIR}/{label}' ]; then "
+    f"mv '{BASE_NODE_DIR}/{label}' \"{BASE_NODE_DIR}/{label}.old.$(date +%s)\"; fi"
+)
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=backup_old_cmd,
+        )
+
+        extract_cmd = f"tar -xzf '{remote_tmp}' -C '{BASE_NODE_DIR}'"
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=extract_cmd,
+        )
+
+        node_dir, _, docker_compose = build_paths(label)
+        docker_cmd = (
+            f"cd '{node_dir}' && "
+            f"docker compose -f '{docker_compose}' down && "
+            f"docker compose -f '{docker_compose}' up -d"
+        )
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=docker_cmd,
+        )
+
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=f"rm -f '{remote_tmp}'",
+        )
+
+    except Exception as e:
+        ssh_error = str(e)
+
+    return render_index(request, node_id=node_id, ssh_info=ssh_info, ssh_json=ssh_json, ssh_error=ssh_error)
+
+
+@app.post("/ssh/change-core")
+async def ssh_change_core(
+    request: Request,
+    ssh_host: str = Form(...),
+    ssh_port: int = Form(...),
+    ssh_user: str = Form(...),
+    ssh_password: str = Form(...),
+    ssh_node_label: str = Form(...),
+    op_node_label: Optional[str] = Form(None),
+    op_xray_version: Optional[str] = Form(None),
+    node_id: Optional[str] = Form(None),
+):
+    redir = require_login(request)
+    if redir:
+        return redir
+
+    ssh_info = sshinfo_from_form(
+        ssh_host=ssh_host,
+        ssh_port=ssh_port,
+        ssh_user=ssh_user,
+        ssh_password=ssh_password,
+        ssh_node_label=ssh_node_label,
+    )
+
+    ssh_error: Optional[str] = None
+    ssh_json = ""
+
+    try:
+        label = effective_label(ssh_info.ssh_node_label, op_node_label)
+        if not op_xray_version or not op_xray_version.strip():
+            raise RuntimeError("ورژن Xray مشخص نشده.")
+
+        version = op_xray_version.strip()
+
+        node_dir, _, docker_compose = build_paths(label)
+
+        download_cmd = "curl -Ls https://raw.githubusercontent.com/soltanihara/ez-node/main/marznode.sh -o /tmp/marznode.sh"
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=download_cmd,
+        )
+
+        run_cmd = f"XRAY_VERSION='{version}' bash /tmp/marznode.sh"
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=run_cmd,
+        )
+
+        docker_cmd = (
+            f"cd '{node_dir}' && "
+            f"docker compose -f '{docker_compose}' down && "
+            f"docker compose -f '{docker_compose}' up -d"
+        )
+        run_ssh_command(
+            host=ssh_info.ssh_host,
+            port=ssh_info.ssh_port,
+            user=ssh_info.ssh_user,
+            password=ssh_info.ssh_password,
+            command=docker_cmd,
+        )
+
+    except Exception as e:
+        ssh_error = str(e)
+
+    return render_index(request, node_id=node_id, ssh_info=ssh_info, ssh_json=ssh_json, ssh_error=ssh_error
