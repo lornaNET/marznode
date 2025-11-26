@@ -290,6 +290,31 @@ ID: {{ selected_node.id }}
                     </button>
                 </div>
 
+                <!-- ✅ NEW hidden inputs -->
+                <input type="hidden" name="op_node_label" id="op_node_label" value="">
+                <input type="hidden" name="op_xray_version" id="op_xray_version" value="">
+
+                <!-- ✅ NEW buttons -->
+                <div class="actions-row" style="margin-top:0.9rem;">
+                    <button class="btn btn-secondary"
+                            type="button"
+                            onclick="submitWithPrompt('/ssh/backup-node', 'اسم نود برای بکاپ؟ مثلا FR', 'op_node_label')">
+                        بکاپ نود (Backup Node)
+                    </button>
+
+                    <button class="btn btn-warning"
+                            type="button"
+                            onclick="submitWithPrompt('/ssh/restore-node', 'اسم نود برای ریستور؟ مثلا FR', 'op_node_label')">
+                        ریستور بکاپ نود (Restore Backup)
+                    </button>
+
+                    <button class="btn btn-primary"
+                            type="button"
+                            onclick="submitWithTwoPrompts('/ssh/change-core', 'اسم نود؟ مثلا FR', 'op_node_label', 'ورژن Xray؟ مثلا 1.8.8', 'op_xray_version')">
+                        تغییر هسته نود / ورژن Xray
+                    </button>
+                </div>
+
                 <div class="small-hint">
                     خاموش/روشن کردن نود فقط روی کانتینر Xray همان VPS انجام می‌شود؛
                     هاست‌ها و کاربران در پنل مرزنشین دست‌نخورده می‌مانند 💙
@@ -321,6 +346,33 @@ ID: {{ selected_node.id }}
             });
         });
     })();
+
+    // ✅ NEW helpers
+    function submitWithPrompt(action, text, hiddenId) {
+        const v = prompt(text || "");
+        if (!v) return;
+        document.getElementById(hiddenId).value = v.trim();
+
+        const form = document.querySelector(".ssh-form");
+        form.action = action;
+        form.method = "post";
+        form.submit();
+    }
+
+    function submitWithTwoPrompts(action, text1, hidden1, text2, hidden2) {
+        const v1 = prompt(text1 || "");
+        if (!v1) return;
+        const v2 = prompt(text2 || "");
+        if (!v2) return;
+
+        document.getElementById(hidden1).value = v1.trim();
+        document.getElementById(hidden2).value = v2.trim();
+
+        const form = document.querySelector(".ssh-form");
+        form.action = action;
+        form.method = "post";
+        form.submit();
+    }
 </script>
 
 </body>
