@@ -1008,3 +1008,4 @@ async def ssh_change_core(
         ssh_error = str(e)
 
     return render_index(request, node_id=node_id, ssh_info=ssh_info, ssh_json=ssh_json, ssh_error=ssh_error
+                       )
